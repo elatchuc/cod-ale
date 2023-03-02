@@ -1,0 +1,99 @@
+import pygame
+import random
+
+# Inicialização do Pygame
+pygame.init()
+
+# Configurações de tela
+largura_tela = 800
+altura_tela = 600
+tela = pygame.display.set_mode((largura_tela, altura_tela))
+pygame.display.set_caption("Jogo")
+
+# Cores
+preto = (0, 0, 0)
+branco = (255, 255, 255)
+
+# Classe jogador
+class Jogador(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.imagem = pygame.Surface((50, 50))
+        self.imagem.fill(branco)
+        self.rect = self.imagem.get_rect()
+        self.rect.x = largura_tela // 2
+        self.rect.y = altura_tela - 100
+
+    def update(self):
+        # Movimentação do jogador
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= 5
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += 5
+
+        # Verifica se o jogador está dentro da tela
+        if self.rect.left < 0:
+            self.rect.left = 0
+        elif self.rect.right > largura_tela:
+            self.rect.right = largura_tela
+
+# Classe inimigo
+class Inimigo(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.imagem = pygame.Surface((30, 30))
+        self.imagem.fill((255, 0, 0))
+        self.rect = self.imagem.get_rect()
+        self.rect.x = random.randrange(largura_tela - self.rect.width)
+        self.rect.y = random.randrange(-100, -40)
+        self.velocidade = random.randrange(1, 5)
+
+    def update(self):
+        # Movimentação do inimigo
+        self.rect.y += self.velocidade
+
+        # Verifica se o inimigo saiu da tela
+        if self.rect.top > altura_tela + 10:
+            self.rect.x = random.randrange(largura_tela - self.rect.width)
+            self.rect.y = random.randrange(-100, -40)
+            self.velocidade = random.randrange(1, 5)
+
+# Grupo de sprites
+todos_sprites = pygame.sprite.Group()
+inimigos = pygame.sprite.Group()
+
+# Cria o jogador
+jogador = Jogador()
+todos_sprites.add(jogador)
+
+# Cria os inimigos
+for i in range(10):
+    inimigo = Inimigo()
+    todos_sprites.add(inimigo)
+    inimigos.add(inimigo)
+
+# Loop do jogo
+jogando = True
+while jogando:
+    # Eventos
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            jogando = False
+
+    # Atualiza os sprites
+    todos_sprites.update()
+
+    # Verifica colisões
+    if pygame.sprite.spritecollide(jogador, inimigos, False):
+        jogando = False
+
+    # Desenha na tela
+    tela.fill(preto)
+    todos_sprites.draw(tela)
+
+    # Atualiza a tela
+    pygame.display.update()
+
+# Encerra o Pygame
+pygame.quit()
